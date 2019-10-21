@@ -58,13 +58,18 @@ const appData = {
             if ((item[0]===eatData.foodX)&&(item[1]===eatData.foodY)){
                 this.snakeBody.push([]);
                 eatData.spawnEat();
-                this.snakeStep -= 50;
+                if (this.snakeStep > 50){
+                    this.snakeStep -= 50;
+                } else {
+                    this.snakeStep = this.snakeStep /2 + 8;
+                }
+                console.log(this.snakeStep)
             }
         })
         this.snakeCheckItself(newX, newY);
     },
     'snakeCheckItself': function(x, y, distruction=false){
-        if ((x<0)||(y<0)||(x>800)||(y>800)||distruction){
+        if ((x<0)||(y<0)||(x>790)||(y>790)||distruction){
             appData.snakeColor = 'blue';
             eatData.foodColor = 'blue';
             ctx.fillStyle = "blue";
@@ -113,9 +118,9 @@ eatData.spawnEat();
 
 let systime = 0;
 setInterval(()=>{
-    systime+=10;
+    systime+=5;
     if (systime-appData.snakeStep>appData.snakeLastStep){
         appData.snakeMove();
         appData.snakeLastStep = systime;
     }
-},10);
+},5);
