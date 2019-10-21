@@ -8,6 +8,7 @@ const appData = {
     'snakeDirection': 3,
     'snakeNextDirection': 3,
     'snakeColor': 'orange',
+    'snakeFootVolor': 'black',
     'snakeSize': 10,
     'snakeBody': [[500,520],[500,510],[500,500]],
     'initDrawBody': function(){
@@ -18,33 +19,39 @@ const appData = {
     },
     'snakeMove': function(direction){
         //Remove the tail
-        ctx.fillStyle = "black";
+        ctx.fillStyle = this.snakeFootVolor;
         ctx.fillRect(this.snakeBody[this.snakeBody.length-1][0], this.snakeBody[this.snakeBody.length-1][1], this.snakeSize, this.snakeSize)
         this.snakeBody = this.snakeBody.slice(0,this.snakeBody.length-1)
         //Drow a head
         ctx.fillStyle = this.snakeColor;
         let newX = this.snakeBody[0][0];
         let newY = this.snakeBody[0][1];
-        if (!((this.snakeDirection - this.snakeNextDirection === 2)||(this.snakeDirection - this.snakeNextDirection === -2))){
-            switch (this.snakeNextDirection) {
-                case 1:
-                    newY-=this.snakeSize;
-                    break;
-                case 2:
-                    newX+=this.snakeSize;
-                    break;
-                case 3:
-                    newY+=this.snakeSize;
-                    break;
-                case 4:
-                    newX-=this.snakeSize;
-                    break;
-            }
+        let possi = !((this.snakeDirection - this.snakeNextDirection === 2)||(this.snakeDirection - this.snakeNextDirection === -2));
+        if (possi){
             this.snakeDirection = this.snakeNextDirection;
+        }
+        switch (this.snakeDirection) {
+            case 1:
+                newY-=this.snakeSize;
+                break;
+            case 2:
+                newX+=this.snakeSize;
+                break;
+            case 3:
+                newY+=this.snakeSize;
+                break;
+            case 4:
+                newX-=this.snakeSize;
+                break;
         }
         if (this.newX === eatData.foodX){
             console.log('fooof');
         }
+        this.snakeBody.forEach((item)=>{
+            if (item[0]===newX&&item[1]===newY){
+                this.snakeCheckItself(null, null, true);
+            }
+        })
         this.snakeBody.unshift([newX, newY]);
         ctx.fillRect(this.snakeBody[0][0],this.snakeBody[0][1],this.snakeSize,this.snakeSize);
         this.snakeBody.forEach((item)=>{
@@ -54,14 +61,25 @@ const appData = {
                 this.snakeStep -= 50;
             }
         })
+        this.snakeCheckItself(newX, newY);
+    },
+    'snakeCheckItself': function(x, y, distruction=false){
+        if ((x<0)||(y<0)||(x>800)||(y>800)||distruction){
+            appData.snakeColor = 'blue';
+            eatData.foodColor = 'blue';
+            ctx.fillStyle = "blue";
+            appData.snakeFootVolor = 'blue';
+            ctx.fillRect(0, 0, example.width, example.height);
+        }
     },
 }
 
 const eatData = {
+    'foodColor': 'green',
     'foodX': 0,
     'foodY': 0,
     'spawnEat': function(){
-        ctx.fillStyle = "green";
+        ctx.fillStyle = this.foodColor;
         let food = this.checkPosition();
         this.foodX = food[0];
         this.foodY = food[1];
@@ -91,15 +109,7 @@ document.addEventListener('keydown', function(event) {
   });
 
 appData.initDrawBody();
-
-// setInterval(()=>{
-//     appData.snakeMove();
-// }, appData.snakeSpeedC());
-
 eatData.spawnEat();
-// for (let i= 0; i<100; i++){
-//     appData.snakeBody.push([]);
-// }
 
 let systime = 0;
 setInterval(()=>{
