@@ -11,6 +11,7 @@ const appData = {
     'snakeFootVolor': 'black',
     'infinityLoop': true,
     'snakeSize': 10,
+    'snakeRecursionDepth': 1,
     'snakeBody': [[500,520],[500,510],[500,500]],
     'initDrawBody': function(){
         ctx.fillStyle = this.snakeColor;
@@ -18,7 +19,7 @@ const appData = {
             ctx.fillRect(item[0],item[1],this.snakeSize,this.snakeSize);
         })
     },
-    'snakeMove': function(direction){
+    'snakeMove': function(){
         //Remove the tail
         ctx.fillStyle = this.snakeFootVolor;
         ctx.fillRect(this.snakeBody[this.snakeBody.length-1][0], this.snakeBody[this.snakeBody.length-1][1], this.snakeSize, this.snakeSize)
@@ -62,22 +63,17 @@ const appData = {
         this.snakeBody.forEach((item)=>{
             if (item[0]===newX&&item[1]===newY){
                 this.snakeCheckItself(null, null, true);
+                // if (this.snakeDirection<4){
+                //     this.snakeDirection++;
+                // }
+                // else {
+                //     this.snakeDirection = 1;
+                // }
             }
         })
         this.snakeBody.unshift([newX, newY]);
         ctx.fillRect(this.snakeBody[0][0],this.snakeBody[0][1],this.snakeSize,this.snakeSize);
-        this.snakeBody.forEach((item)=>{
-            if ((item[0]===eatData.foodX)&&(item[1]===eatData.foodY)){
-                this.snakeBody.push([]);
-                eatData.spawnEat();
-                if (this.snakeStep > 50){
-                    this.snakeStep -= 10;
-                } else {
-                    this.snakeStep = this.snakeStep /2;
-                }
-                console.log(this.snakeStep)
-            }
-        })
+        this.snakeTryToFindSomeFood()
         this.snakeCheckItself(newX, newY);
     },
     'snakeCheckItself': function(x, y, distruction=false){
@@ -86,13 +82,45 @@ const appData = {
             eatData.foodColor = 'blue';
             ctx.fillStyle = "blue";
             appData.snakeFootVolor = 'blue';
+            this.snakeStep = 1000000;
             ctx.fillRect(0, 0, example.width, example.height);
         }
+    },
+    'snakeBecomeFaster': function(){
+        let depth = this.snakeRecursionDepth;
+        function recursion(depth){
+            if (depth>0){
+                appData.snakeMove();
+                return recursion(depth-1);
+            }
+        }
+        recursion(depth);
+    },
+    'snakeTryToFindSomeFood': function(){
+        this.snakeBody.forEach((item)=>{
+            if (((item[0]>=eatData.foodX)&&(item[0]<(eatData.foodX+eatData.foodSize*10)))&&((item[1]>=eatData.foodY)&&(item[1]<(eatData.foodY+eatData.foodSize*10)))){
+                this.snakeBody.push([]);
+                ctx.fillStyle = "black";
+                ctx.fillRect(0, 0, example.width, example.height);
+                appData.initDrawBody();
+                eatData.spawnEat();
+                if (this.snakeStep > 80){
+                    this.snakeStep -= 2;
+                } else if (this.snakeStep >= 10){
+                    this.snakeStep -= 1;
+                } else {
+                    eatData.foodSize+=1;
+                    this.snakeRecursionDepth++;
+                    this.snakeStep = 15;
+                }
+            }
+        })
     },
 }
 
 const eatData = {
     'foodColor': 'green',
+    'foodSize': 1,
     'foodX': 0,
     'foodY': 0,
     'spawnEat': function(){
@@ -100,11 +128,11 @@ const eatData = {
         let food = this.checkPosition();
         this.foodX = food[0];
         this.foodY = food[1];
-        ctx.fillRect(this.foodX, this.foodY, 10, 10);
+        ctx.fillRect(this.foodX, this.foodY, this.foodSize*10, this.foodSize*10);
     },
     'checkPosition': function(){
-        eatX = Math.round((Math.random()*80))*10;
-        eatY = Math.round((Math.random()*80))*10;
+        eatX = Math.round((Math.random()*(80-this.foodSize)))*10;
+        eatY = Math.round((Math.random()*(80-this.foodSize)))*10;
         if (appData.snakeBody.includes([eatX, eatY])){
             return eatData.checkPosition()
         } else {
@@ -132,7 +160,7 @@ let systime = 0;
 setInterval(()=>{
     systime+=4;
     if (systime-appData.snakeStep>appData.snakeLastStep){
-        appData.snakeMove();
+        appData.snakeBecomeFaster(appData.snakeRecursionDepth);
         appData.snakeLastStep = systime;
     }
 },4);
