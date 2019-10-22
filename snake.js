@@ -4,11 +4,12 @@ let example = document.getElementById("example"),
 
 const appData = {
     'snakeLastStep': 0,
-    'snakeStep': 500,
+    'snakeStep': 150,
     'snakeDirection': 3,
     'snakeNextDirection': 3,
     'snakeColor': 'orange',
     'snakeFootVolor': 'black',
+    'infinityLoop': true,
     'snakeSize': 10,
     'snakeBody': [[500,520],[500,510],[500,500]],
     'initDrawBody': function(){
@@ -44,8 +45,19 @@ const appData = {
                 newX-=this.snakeSize;
                 break;
         }
-        if (this.newX === eatData.foodX){
-            console.log('fooof');
+        if (this.infinityLoop){
+            if (newX>790){
+                newX-=800;
+            }
+            if (newX<0){
+                newX+=800
+            }
+            if (newY>790){
+                newY-=800;
+            }
+            if (newY<0){
+                newY+=800
+            }
         }
         this.snakeBody.forEach((item)=>{
             if (item[0]===newX&&item[1]===newY){
@@ -59,9 +71,9 @@ const appData = {
                 this.snakeBody.push([]);
                 eatData.spawnEat();
                 if (this.snakeStep > 50){
-                    this.snakeStep -= 50;
+                    this.snakeStep -= 10;
                 } else {
-                    this.snakeStep = this.snakeStep /2 + 8;
+                    this.snakeStep = this.snakeStep /2;
                 }
                 console.log(this.snakeStep)
             }
@@ -118,9 +130,9 @@ eatData.spawnEat();
 
 let systime = 0;
 setInterval(()=>{
-    systime+=5;
+    systime+=4;
     if (systime-appData.snakeStep>appData.snakeLastStep){
         appData.snakeMove();
         appData.snakeLastStep = systime;
     }
-},5);
+},4);
